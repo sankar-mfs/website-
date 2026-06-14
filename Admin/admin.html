@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Attendance Management System</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+*{font-family:'Poppins',sans-serif;}
+body{background:#f4f7fe;}
+
+.header-section{
+background:linear-gradient(135deg,#1b2a52,#29417d);
+color:white;
+text-align:center;
+padding:45px 20px;
+border-bottom-left-radius:30px;
+border-bottom-right-radius:30px;
+}
+
+.main-box{
+background:white;
+margin-top:40px;
+padding:35px;
+border-radius:25px;
+box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+.date-box{
+background:#eef3ff;
+padding:15px;
+border-radius:15px;
+text-align:center;
+font-weight:600;
+margin-bottom:25px;
+}
+
+.table thead{
+background:#1b2a52;
+color:white;
+}
+
+.form-select{
+height:45px;
+border-radius:10px;
+}
+
+.btn-save{
+background:#198754;
+color:white;
+padding:12px 25px;
+border:none;
+border-radius:12px;
+font-weight:600;
+}
+
+.btn-download{
+background:#0d6efd;
+color:white;
+padding:12px 25px;
+border:none;
+border-radius:12px;
+font-weight:600;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<section class="header-section">
+<h1><i class="fa-solid fa-calendar-check"></i> Attendance System</h1>
+<p>Sivani Coaching Center</p>
+</section>
+
+<div class="container">
+
+<div class="main-box">
+
+<div class="date-box" id="todayDate"></div>
+
+<table class="table table-bordered text-center">
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Class</th>
+<th>Attendance</th>
+</tr>
+</thead>
+
+<tbody id="adminTable"></tbody>
+</table>
+
+<div class="text-center mt-4">
+
+<button class="btn-save" onclick="saveAllAttendance()">
+Save Attendance
+</button>
+
+<button class="btn-download ms-2" onclick="downloadExcel()">
+Download Excel
+</button>
+
+<a href="index.html" class="btn btn-dark ms-2">
+Admin Home
+</a>
+
+</div>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+
+<script>
+
+// TODAY
+let today = new Date();
+let dateKey = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+let dayName = today.toLocaleDateString('en-US',{weekday:'long'});
+
+document.getElementById("todayDate").innerHTML =
+`${dayName} - ${dateKey}`;
+
+// STUDENTS
+let students = [];
+
+loadTable();
+
+async function loadTable(){
+
+let table = document.getElementById("adminTable");
+table.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
+
+const { data: studentsData, error: studentError } = await _supabase
+    .from('students')
+    .select('*')
+    .order('student_id', { ascending: true });
+
+if (studentError) {
+    console.error("Error loading students:", studentError);
+    table.innerHTML = "<tr><td colspan='4' class='text-danger'>Error loading students</td></tr>";
+    return;
+}
+
+students = studentsData;
+
+const { data: attendanceData, error: attError } = await _supabase
+    .from('attendance')
+    .select('*')
+    .eq('date', dateKey);
+
+let todayAtt = {};
+if (attendanceData) {
+    attendanceData.forEach(r => {
+        todayAtt[r.student_id] = r.status;
+    });
+}
+
+table.innerHTML = "";
+
+students.forEach((s,i)=>{
+
+let status = todayAtt[s.student_id] || "Present";
+
+table.innerHTML += `
+<tr>
+<td>${s.student_id}</td>
+<td>${s.name}</td>
+<td>${s.student_class}</td>
+<td>
+<select id="att${i}" class="form-select">
+<option ${status === 'Present' ? 'selected' : ''}>Present</option>
+<option ${status === 'Absent' ? 'selected' : ''}>Absent</option>
+</select>
+</td>
+</tr>
+`;
+
+});
+
+}
+
+// SAVE DAY WISE
+async function saveAllAttendance(){
+
+let upsertData = [];
+
+students.forEach((s,i)=>{
+
+upsertData.push({
+date: dateKey,
+student_id: s.student_id,
+status: document.getElementById("att"+i).value
+});
+
+});
+
+const { error } = await _supabase
+    .from('attendance')
+    .upsert(upsertData, { onConflict: 'date,student_id' });
+
+if (error) {
+    alert("Error saving attendance: " + error.message);
+    return;
+}
+
+alert("Saved for " + dateKey);
+
+}
+
+// EXPORT ALL
+async function downloadExcel(){
+
+const { data, error } = await _supabase
+    .from('attendance')
+    .select(`
+        date,
+        status,
+        student_id,
+        students (
+            name,
+            student_class
+        )
+    `);
+
+if (error) {
+    alert("Error exporting attendance: " + error.message);
+    return;
+}
+
+let exportData = data.map(r => ({
+    Date: r.date,
+    ID: r.student_id,
+    Name: r.students ? r.students.name : 'Unknown',
+    Class: r.students ? r.students.student_class : 'Unknown',
+    Status: r.status
+}));
+
+let ws = XLSX.utils.json_to_sheet(exportData);
+let wb = XLSX.utils.book_new();
+
+XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+
+XLSX.writeFile(wb, "Attendance_Full_Backup.xlsx");
+
+}
+
+</script>
+
+</body>
+</html>

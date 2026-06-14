@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Student Mark Management</title>
+
+    <!-- Bootstrap -->
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <!-- Font Awesome -->
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Google Font -->
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <!-- Excel -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+
+        *{
+            font-family:'Poppins',sans-serif;
+        }
+
+        body{
+            background:#f4f7fe;
+        }
+
+        .header-section{
+            background:linear-gradient(135deg,#1b2a52,#29417d);
+            color:white;
+            text-align:center;
+            padding:45px 20px;
+            border-bottom-left-radius:30px;
+            border-bottom-right-radius:30px;
+        }
+
+        .main-box{
+            background:white;
+            margin-top:40px;
+            padding:35px;
+            border-radius:25px;
+            box-shadow:0px 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .form-control,
+        .form-select{
+            height:55px;
+            border-radius:12px;
+        }
+
+        .btn-main{
+            height:55px;
+            border:none;
+            border-radius:12px;
+            font-weight:600;
+        }
+
+        .btn-add{
+            background:#0d6efd;
+            color:white;
+        }
+
+        .btn-download{
+            background:#198754;
+            color:white;
+        }
+
+        .table-box{
+            margin-top:35px;
+            overflow:auto;
+            border-radius:18px;
+        }
+
+        .table thead{
+            background:#1b2a52;
+            color:white;
+        }
+
+        .table th,
+        .table td{
+            text-align:center;
+            padding:15px;
+        }
+
+        .btn-delete{
+            background:#dc3545;
+            color:white;
+            border:none;
+            padding:8px 14px;
+            border-radius:8px;
+        }
+
+        .footer{
+            text-align:center;
+            padding:20px;
+            margin-top:40px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+
+<section class="header-section">
+
+    <div class="container">
+
+        <h1>
+
+            <i class="fa-solid fa-chart-column"></i>
+
+            Student Mark Management
+
+        </h1>
+
+        <p>
+
+            Monthly, Quarterly, Half Yearly & Annual Exam Marks
+
+        </p>
+
+    </div>
+
+</section>
+
+<!-- MAIN -->
+
+<div class="container">
+
+    <div class="main-box">
+
+        <h3 class="mb-4">
+
+            <i class="fa-solid fa-pen"></i>
+
+            Enter Student Marks
+
+        </h3>
+
+        <!-- FORM -->
+
+        <div class="row g-3">
+
+            <!-- STUDENT -->
+
+            <div class="col-md-3">
+
+                <select id="studentId"
+                        class="form-select"
+                        onchange="fillStudentData()">
+
+                </select>
+
+            </div>
+
+            <!-- NAME -->
+
+            <div class="col-md-3">
+
+                <input type="text"
+                       id="studentName"
+                       class="form-control"
+                       placeholder="Student Name"
+                       readonly>
+
+            </div>
+
+            <!-- CLASS -->
+
+            <div class="col-md-2">
+
+                <input type="text"
+                       id="studentClass"
+                       class="form-control"
+                       placeholder="Class"
+                       readonly>
+
+            </div>
+
+            <!-- EXAM -->
+
+            <div class="col-md-4">
+
+                <select id="examType"
+                        class="form-select">
+
+                    <option value="">
+                        Select Exam
+                    </option>
+
+                    <option>
+                        Monthly Test
+                    </option>
+
+                    <option>
+                        Quarterly Exam
+                    </option>
+
+                    <option>
+                        Half Yearly Exam
+                    </option>
+
+                    <option>
+                        Annual Exam
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <!-- GROUP -->
+
+        <div class="row g-3 mt-3"
+             id="groupBox"
+             style="display:none;">
+
+            <div class="col-md-4">
+
+                <select id="groupSelect"
+                        class="form-select"
+                        onchange="loadSubjects()">
+
+                    <option value="">
+                        Select Group
+                    </option>
+
+                    <option value="Bio Maths">
+                        Bio Maths
+                    </option>
+
+                    <option value="Computer Science">
+                        Computer Science
+                    </option>
+
+                    <option value="Commerce">
+                        Commerce
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <!-- SUBJECTS -->
+
+        <div class="row g-3 mt-3"
+             id="subjectFields">
+
+        </div>
+
+        <!-- BUTTON -->
+
+        <div class="mt-4">
+
+            <button class="btn-main btn-add w-100"
+                    onclick="addMark()">
+
+                Add Marks
+
+            </button>
+
+        </div>
+
+        <!-- TABLE -->
+
+        <div class="table-box">
+
+            <table class="table table-hover">
+
+                <thead>
+
+                    <tr>
+
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Exam</th>
+                        <th>Marks</th>
+                        <th>Total</th>
+                        <th>Average</th>
+                        <th>Date</th>
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="markTable">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- DOWNLOAD -->
+
+        <div class="text-center mt-4">
+
+            <button class="btn btn-download btn-lg"
+                    onclick="downloadExcel()">
+
+                <i class="fa-solid fa-file-excel"></i>
+
+                Download Excel
+
+            </button>
+
+             <!-- ADMIN HOME BUTTON -->
+    <a href="index.html"
+       class="btn btn-dark ms-2">
+
+        <i class="fa-solid fa-house"></i>
+
+        Admin Home
+
+    </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- FOOTER -->
+
+<div class="footer">
+
+    © 2026 Sivani Coaching Center
+
+</div>
+
+<!-- SCRIPT -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+
+<script>
+
+// STUDENTS FROM localStorage (now Supabase cache)
+let students = [];
+
+// MARKS STORAGE
+let marks = [];
+
+// LOAD DATA
+loadData();
+
+async function loadData() {
+    await loadStudentDropdown();
+    await loadMarks();
+}
+
+
+// LOAD STUDENT DROPDOWN
+async function loadStudentDropdown(){
+
+    let dropdown =
+        document.getElementById("studentId");
+
+    dropdown.innerHTML =
+        `<option value="">Select Student</option>`;
+
+    const { data, error } = await _supabase
+        .from('students')
+        .select('*')
+        .order('student_id', { ascending: true });
+
+    if (error) {
+        console.error("Error loading students for marks dropdown:", error);
+        return;
+    }
+
+    students = data;
+
+    students.forEach((student,index)=>{
+
+        dropdown.innerHTML += `
+
+        <option value="${index}">
+
+            ${student.student_id} - ${student.name}
+
+        </option>
+
+        `;
+
+    });
+
+}
+
+
+// FILL STUDENT DATA
+function fillStudentData(){
+
+    let index =
+        document.getElementById("studentId").value;
+
+    let subjectBox =
+        document.getElementById("subjectFields");
+
+    subjectBox.innerHTML = "";
+
+    if(index == ""){
+        return;
+    }
+
+    let student =
+        students[index];
+
+    document.getElementById("studentName").value =
+        student.name;
+
+    document.getElementById("studentClass").value =
+        student.student_class;
+
+    let cls =
+        parseInt(student.student_class);
+
+    // BELOW OR EQUAL 10
+    if(cls <= 10){
+
+        document.getElementById("groupBox").style.display =
+            "none";
+
+        createSubjects([
+
+            "Tamil",
+            "English",
+            "Maths",
+            "Science",
+            "Social"
+
+        ]);
+
+    }
+
+    // 11 & 12
+    else{
+
+        document.getElementById("groupBox").style.display =
+            "flex";
+
+    }
+
+}
+
+
+// LOAD SUBJECTS FOR 11/12
+function loadSubjects(){
+
+    let group =
+        document.getElementById("groupSelect").value;
+
+    if(group == "") return;
+
+    if(group == "Bio Maths"){
+
+        createSubjects([
+
+            "Tamil",
+            "English",
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+
+        ]);
+
+    }
+
+    else if(group == "Computer Science"){
+
+        createSubjects([
+
+            "Tamil",
+            "English",
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Computer Science"
+
+        ]);
+
+    }
+
+    else if(group == "Commerce"){
+
+        createSubjects([
+
+            "Tamil",
+            "English",
+            "Accountancy",
+            "Commerce",
+            "Economics",
+            "Computer Application"
+
+        ]);
+
+    }
+
+}
+
+
+// CREATE SUBJECT INPUTS
+function createSubjects(subjects){
+
+    let box =
+        document.getElementById("subjectFields");
+
+    box.innerHTML = "";
+
+    subjects.forEach(subject=>{
+
+        let id =
+            subject.replace(/\s/g,'');
+
+        box.innerHTML += `
+
+        <div class="col-md-2">
+
+            <input type="number"
+                   id="${id}"
+                   class="form-control"
+                   placeholder="${subject}">
+
+        </div>
+
+        `;
+
+    });
+
+}
+
+
+// ADD MARK
+async function addMark(){
+
+    let studentIndex =
+        document.getElementById("studentId").value;
+
+    let exam =
+        document.getElementById("examType").value;
+
+    if(studentIndex == "" || exam == ""){
+
+        alert("Please Fill All Fields");
+
+        return;
+
+    }
+
+    let student =
+        students[studentIndex];
+
+    let cls =
+        parseInt(student.student_class);
+
+    let subjects = [];
+
+    // <=10
+    if(cls <= 10){
+
+        subjects = [
+
+            "Tamil",
+            "English",
+            "Maths",
+            "Science",
+            "Social"
+
+        ];
+
+    }
+
+    // 11/12
+    else{
+
+        let group =
+            document.getElementById("groupSelect").value;
+
+        if(group == ""){
+
+            alert("Select Group");
+
+            return;
+
+        }
+
+        if(group == "Bio Maths"){
+
+            subjects = [
+
+                "Tamil",
+                "English",
+                "Physics",
+                "Chemistry",
+                "Maths",
+                "Biology"
+
+            ];
+
+        }
+
+        else if(group == "Computer Science"){
+
+            subjects = [
+
+                "Tamil",
+                "English",
+                "Physics",
+                "Chemistry",
+                "Maths",
+                "Computer Science"
+
+            ];
+
+        }
+
+        else if(group == "Commerce"){
+
+            subjects = [
+
+                "Tamil",
+                "English",
+                "Accountancy",
+                "Commerce",
+                "Economics",
+                "Computer Application"
+
+            ];
+
+        }
+
+    }
+
+    let markData = {};
+    let total = 0;
+
+    subjects.forEach(subject=>{
+
+        let id =
+            subject.replace(/\s/g,'');
+
+        let value =
+            Number(document.getElementById(id).value);
+
+        markData[subject] = value;
+
+        total += value;
+
+    });
+
+    let average =
+        (total / subjects.length).toFixed(2);
+
+    const { error } = await _supabase
+        .from('marks')
+        .insert([{
+            student_id: student.student_id,
+            exam: exam,
+            subjects: markData,
+            total: total,
+            average: average,
+            date: new Date().toLocaleDateString()
+        }]);
+
+    if (error) {
+        alert("Error saving marks: " + error.message);
+        return;
+    }
+
+    loadMarks();
+
+    alert("Marks Added Successfully");
+
+}
+
+
+// LOAD TABLE
+async function loadMarks(){
+
+    let table =
+        document.getElementById("markTable");
+
+    table.innerHTML = "<tr><td colspan='9'>Loading...</td></tr>";
+
+    const { data, error } = await _supabase
+        .from('marks')
+        .select(`
+            id,
+            student_id,
+            exam,
+            subjects,
+            total,
+            average,
+            date,
+            students (
+                name,
+                student_class
+            )
+        `);
+
+    if (error) {
+        console.error("Error loading marks table:", error);
+        table.innerHTML = "<tr><td colspan='9' class='text-danger'>Error loading data</td></tr>";
+        return;
+    }
+
+    marks = data;
+    table.innerHTML = "";
+
+    marks.forEach((data,index)=>{
+
+        let subjectText = "";
+
+        for(let key in data.subjects){
+
+            subjectText +=
+                key + " : " +
+                data.subjects[key] + "<br>";
+
+        }
+
+        let studentName = data.students ? data.students.name : 'Unknown';
+        let studentClass = data.students ? data.students.student_class : 'Unknown';
+
+        table.innerHTML += `
+
+        <tr>
+
+            <td>${data.student_id}</td>
+
+            <td>${studentName}</td>
+
+            <td>${studentClass}</td>
+
+            <td>${data.exam}</td>
+
+            <td>${subjectText}</td>
+
+            <td>${data.total}</td>
+
+            <td>${data.average}</td>
+
+            <td>${data.date}</td>
+
+            <td>
+
+                <button class="btn-delete"
+                        onclick="deleteMark(${data.id})">
+
+                    Delete
+
+                </button>
+
+            </td>
+
+        </tr>
+
+        `;
+
+    });
+
+}
+
+
+// DELETE
+async function deleteMark(id){
+
+    if(confirm("Delete this mark?")){
+
+        const { error } = await _supabase
+            .from('marks')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            alert("Error deleting mark: " + error.message);
+            return;
+        }
+
+        loadMarks();
+
+    }
+
+}
+
+
+// DOWNLOAD EXCEL
+function downloadExcel(){
+
+    let excelData = [];
+
+    marks.forEach(data=>{
+
+        let studentName = data.students ? data.students.name : 'Unknown';
+        let studentClass = data.students ? data.students.student_class : 'Unknown';
+
+        let row = {
+
+            "Student ID":data.student_id,
+
+            "Student Name":studentName,
+
+            "Class":studentClass,
+
+            "Exam":data.exam,
+
+            "Total":data.total,
+
+            "Average":data.average,
+
+            "Date":data.date
+
+        };
+
+        for(let key in data.subjects){
+
+            row[key] =
+                data.subjects[key];
+
+        }
+
+        excelData.push(row);
+
+    });
+
+    let worksheet =
+        XLSX.utils.json_to_sheet(excelData);
+
+    let workbook =
+        XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Marks"
+    );
+
+    XLSX.writeFile(
+        workbook,
+        "Student_Marks.xlsx"
+    );
+
+}
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>
