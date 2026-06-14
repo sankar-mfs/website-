@@ -503,9 +503,13 @@
                                 <label class="form-label fw-semibold">Mother's Occupation</label>
                                 <input type="text" id="studentMotherOcc" class="form-control">
                             </div>
-                            <div class="col-md-12">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Phone Number *</label>
+                                <input type="text" id="studentPhone" class="form-control" placeholder="10 Digit Calling Number" required>
+                            </div>
+                            <div class="col-md-6">
                                 <label class="form-label fw-semibold">WhatsApp Number *</label>
-                                <input type="text" id="studentPhone" class="form-control" placeholder="10 Digit Mobile Number" required>
+                                <input type="text" id="studentWhatsapp" class="form-control" placeholder="10 Digit WhatsApp Number" required>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label fw-semibold">Address *</label>
@@ -602,8 +606,12 @@
 
                         <h6 class="form-section-title fs-6 mb-2 mt-4"><i class="fa-solid fa-map-location-dot me-2"></i>Contact Details</h6>
                         <div class="profile-detail-row">
-                            <span class="profile-label">WhatsApp Contact</span>
+                            <span class="profile-label">Phone Number</span>
                             <span class="profile-value" id="viewPhone">-</span>
+                        </div>
+                        <div class="profile-detail-row">
+                            <span class="profile-label">WhatsApp Number</span>
+                            <span class="profile-value" id="viewWhatsapp">-</span>
                         </div>
                         <div class="profile-detail-row border-0 pb-0">
                             <span class="profile-label align-self-start">Residence Address</span>
@@ -745,6 +753,7 @@
             let motherName = document.getElementById("studentMotherName").value.trim();
             let motherOcc = document.getElementById("studentMotherOcc").value.trim();
             let phone = document.getElementById("studentPhone").value.trim();
+            let whatsapp = document.getElementById("studentWhatsapp").value.trim();
             let address = document.getElementById("studentAddress").value.trim();
 
             if (!id || !name || !studentClass) {
@@ -768,6 +777,7 @@
                 mother_name: motherName,
                 mother_occupation: motherOcc,
                 phone: phone,
+                whatsapp_number: whatsapp,
                 address: address,
                 photo: currentPhotoBase64
             };
@@ -826,6 +836,7 @@
             document.getElementById("studentMotherName").value = student.mother_name || '';
             document.getElementById("studentMotherOcc").value = student.mother_occupation || '';
             document.getElementById("studentPhone").value = student.phone || '';
+            document.getElementById("studentWhatsapp").value = student.whatsapp_number || '';
             document.getElementById("studentAddress").value = student.address || '';
 
             // Handle Photo
@@ -877,6 +888,7 @@
             document.getElementById("viewMotherOcc").innerText = student.mother_occupation || 'N/A';
             
             document.getElementById("viewPhone").innerText = student.phone || 'N/A';
+            document.getElementById("viewWhatsapp").innerText = student.whatsapp_number || 'N/A';
             document.getElementById("viewAddress").innerText = student.address || 'N/A';
 
             profileModalInstance.show();
